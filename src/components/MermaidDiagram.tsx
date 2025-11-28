@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import mermaid from 'mermaid'
+import './MermaidDiagram.css'
 
 interface MermaidDiagramProps {
   mermaidCode: string
@@ -23,7 +24,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ mermaidCode }) => {
     mermaid.initialize({
       startOnLoad: false,
       theme: 'default',
-      securityLevel: 'loose',
+      securityLevel: 'strict',
       logLevel: 'error'
     })
 

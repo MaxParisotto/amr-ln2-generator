@@ -13,11 +13,11 @@ subgraph FE[Front-End Air Handling]
 end
 
 %% ========================= MEMBRANE SEPARATION (7 bar) =========================
-subgraph MS[Membrane Separation (N₂ Enrichment)]
+subgraph MS["Membrane Separation (N₂ Enrichment)"]
     PR1[PR-101\nPressure Regulator\nSet: 7 bar]
     V1{{V-101\nFeed Isolation Valve}}
     M1[Hollow-Fiber N₂ Membrane\nFeed: ~7 bar]
-    N2P[N₂-Rich Stream\n(90–99% N₂)]
+    N2P["N₂-Rich Stream (90–99% N₂)"]
     O2R[O₂-Rich Retentate\nVent/Re-use]
 
     A6 --> PR1 --> V1 --> M1
@@ -28,15 +28,15 @@ end
 %% ========================= PRECOOLING EXCHANGERS =========================
 subgraph PC[Pre-Cooling HX Chain]
     HX1[HX-101\nWarm N₂ ↔ Cold Vapor]
-    HX2[HX-102\nInterstage Pre-Cooler\n(Magno Stage A Return)]
-    HX3[HX-103\nDeep Pre-Cooler\n(Magno Stage C Return)]
+    HX2["HX-102 Interstage Pre-Cooler - Magno Stage A Return"]
+    HX3["HX-103 Deep Pre-Cooler - Magno Stage C Return"]
     N2C[N₂ @ ~80–100 K]
 
     N2P --> HX1 --> HX2 --> HX3 --> N2C
 end
 
 %% ========================= MAGNETOCALORIC COLD BOX =========================
-subgraph MC[Magnetocaloric Cryocooler (Rotary AMR)]
+subgraph MC["Magnetocaloric Cryocooler (Rotary AMR)"]
     direction TB
 
     MCmag[Halbach Rotor\n2–3 Tesla Gap Field]:::magnet
@@ -106,6 +106,6 @@ subgraph CTRL[Control System]
 end
 
 %% ========================= CLASS DEFINITIONS =========================
-classDef magnet fill=#ffd9b3,stroke=#b36b00,stroke-width=1px;
-classDef cold fill=#ccf2ff,stroke=#007399,stroke-width=1px;
-classDef mech fill=#e6e6e6,stroke=#808080,stroke-width=1px;
+classDef magnet fill:#ffd9b3,stroke:#b36b00,stroke-width:1px
+classDef cold fill:#ccf2ff,stroke:#007399,stroke-width:1px
+classDef mech fill:#e6e6e6,stroke:#808080,stroke-width:1px

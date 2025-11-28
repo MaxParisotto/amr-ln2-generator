@@ -4,25 +4,35 @@ import './App.css'
 
 const App: React.FC = () => {
   const [mermaidContent, setMermaidContent] = useState('')
+  const fallbackDiagram = `flowchart LR
+    A[Start] --> B[Process]
+    B --> C[End]
+    classDef default fill=#f9f,stroke=333,stroke-width=2px`
 
   useEffect(() => {
-    // Read the mermaid content from the markdown file
-    fetch('/amr-ln2-flowchart.md')
-      .then((response) => response.text())
+    // Fetch from public folder - Vite serves public files at root
+    const diagramUrl = `${import.meta.env.BASE_URL}amr-ln2-flowchart.md`
+
+    fetch(diagramUrl)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to load diagram: ${response.status}`)
+        }
+        return response.text()
+      })
       .then((text) => {
-        // Extract the mermaid diagram content between ```mermaid and ```
+        // Try to extract from ```mermaid code block first
         const match = text.match(/```mermaid\n([\s\S]*?)\n```/)
         if (match && match[1]) {
           setMermaidContent(match[1])
+        } else {
+          // If no code block found, use the raw content as mermaid code
+          setMermaidContent(text.trim())
         }
       })
       .catch((error) => {
         console.error('Error reading mermaid file:', error)
-        // Fallback content
-        setMermaidContent(`flowchart LR
-    A[Start] --> B[Process]
-    B --> C[End]
-    classDef default fill=#f9f,stroke=333,stroke-width=2px`)
+        setMermaidContent(fallbackDiagram)
       })
   }, [])
 
