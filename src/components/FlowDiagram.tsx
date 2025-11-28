@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Wind, Zap, Thermometer, Gauge, ArrowDown, Settings2 } from 'lucide-react';
+import CryocoolerDiagram from './CryocoolerDiagram';
 
 // MNH-1522A Performance Data (at 35°C)
 const MEMBRANE_DATA: Record<number, Record<number, { n2: number, air: number }>> = {
@@ -305,11 +306,29 @@ const FlowDiagram: React.FC = () => {
       {/* Vertical Flow */}
       <div className="pb-24">
         {sections.map((section, idx) => (
-          <SectionCard 
-            key={section.id} 
-            data={section} 
-            isLast={idx === sections.length - 1} 
-          />
+          <React.Fragment key={section.id}>
+            <SectionCard 
+              data={section} 
+              isLast={idx === sections.length - 1} 
+            />
+            {/* Insert Cryocooler Diagram after Membrane Separation */}
+            {section.id === 'membrane' && (
+              <div className="flex flex-col items-center w-full">
+                <div className="h-16 w-0.5 bg-slate-200 my-4 relative">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-1.5 rounded-full border border-slate-200 shadow-sm">
+                    <ArrowDown className="w-3 h-3 text-slate-400" />
+                  </div>
+                </div>
+                <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden mb-4">
+                  <div className="px-8 py-4 border-b border-orange-200 bg-orange-50 text-center">
+                    <h3 className="text-xl font-bold text-orange-900">AMR Cryocooler System Overview</h3>
+                    <p className="text-slate-600 mt-1 text-sm">3-Stage Cascade Magnetic Refrigeration</p>
+                  </div>
+                  <CryocoolerDiagram />
+                </div>
+              </div>
+            )}
+          </React.Fragment>
         ))}
       </div>
     </div>
