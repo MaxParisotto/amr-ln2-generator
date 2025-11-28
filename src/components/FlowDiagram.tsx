@@ -313,7 +313,39 @@ const FlowDiagram: React.FC = () => {
       type: 'stageNode',
       position: { x: 300, y: 570 },
       data: {
-        label: 'Magnetocaloric Cryocooler',
+        label: 'Stage 1: 300K → 200K',
+        icon: Zap,
+        color: 'orange',
+        specs: [
+          { param: 'Magnetic Field', value: '1.5 - 2.0 Tesla', note: 'Halbach Array Permanent Magnets' },
+          { param: 'Operating Frequency', value: '1 - 4 Hz', note: 'Rotary or Reciprocating' },
+          { param: 'MCM Material', value: 'Gd-based Alloy', note: 'Curie temperature ~290K' },
+          { param: 'Heat Transfer Fluid', value: 'Helium / Nitrogen', note: 'Pressurized 10-20 bar' },
+        ],
+      },
+    },
+    {
+      id: '5',
+      type: 'stageNode',
+      position: { x: 300, y: 720 },
+      data: {
+        label: 'Stage 2: 200K → 120K',
+        icon: Zap,
+        color: 'orange',
+        specs: [
+          { param: 'Magnetic Field', value: '1.5 - 2.0 Tesla', note: 'Halbach Array Permanent Magnets' },
+          { param: 'Operating Frequency', value: '1 - 4 Hz', note: 'Rotary or Reciprocating' },
+          { param: 'MCM Material', value: 'LaFeSi-based', note: 'Curie temperature ~200K' },
+          { param: 'Heat Transfer Fluid', value: 'Helium / Nitrogen', note: 'Pressurized 10-20 bar' },
+        ],
+      },
+    },
+    {
+      id: '6',
+      type: 'stageNode',
+      position: { x: 300, y: 870 },
+      data: {
+        label: 'Stage 3: 120K → 80K',
         icon: Zap,
         color: 'orange',
         metrics: [
@@ -324,17 +356,16 @@ const FlowDiagram: React.FC = () => {
         specs: [
           { param: 'Magnetic Field', value: '1.5 - 2.0 Tesla', note: 'Halbach Array Permanent Magnets' },
           { param: 'Operating Frequency', value: '1 - 4 Hz', note: 'Rotary or Reciprocating' },
-          { param: 'MCM Material', value: 'Gd / LaFeSi / MnFeP', note: '3-stage cascaded Curie temps' },
+          { param: 'MCM Material', value: 'MnFeP-based', note: 'Curie temperature ~120K' },
           { param: 'Heat Transfer Fluid', value: 'Helium / Nitrogen', note: 'Pressurized 10-20 bar' },
           { param: 'Cold Tip Temp', value: '77 K (-196°C)', note: 'Liquefaction point' },
-          { param: 'Stages', value: '3-Stage Cascade', note: '300→200K, 200→120K, 120→80K' },
         ],
       },
     },
     {
-      id: '5',
+      id: '7',
       type: 'stageNode',
-      position: { x: 300, y: 860 },
+      position: { x: 300, y: 1020 },
       data: {
         label: 'Liquefaction Output',
         icon: Thermometer,
@@ -402,6 +433,24 @@ const FlowDiagram: React.FC = () => {
       type: 'smoothstep',
       animated: true, 
       style: { stroke: '#0284c7', strokeWidth: 3 }, 
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#0284c7' }
+    },
+    { 
+      id: 'e5-6', 
+      source: '5', 
+      target: '6', 
+      type: 'smoothstep',
+      animated: true, 
+      style: { stroke: '#0284c7', strokeWidth: 3 }, 
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#0284c7' }
+    },
+    { 
+      id: 'e6-7', 
+      source: '6', 
+      target: '7', 
+      type: 'smoothstep',
+      animated: true, 
+      style: { stroke: '#0284c7', strokeWidth: 3 }, 
       label: 'Cold N₂',
       markerEnd: { type: MarkerType.ArrowClosed, color: '#0284c7' }
     },
@@ -456,6 +505,22 @@ const FlowDiagram: React.FC = () => {
             ...node,
             data: {
               ...node.data,
+            },
+          };
+        }
+        if (node.id === '5') {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+            },
+          };
+        }
+        if (node.id === '6') {
+          return {
+            ...node,
+            data: {
+              ...node.data,
               metrics: [
                 { label: 'Cooling Power', value: coolingCapacity, unit: 'W' },
                 { label: 'Cryo Power', value: power > 0 ? (power * 0.4).toFixed(1) : 0, unit: 'kW' },
@@ -464,7 +529,7 @@ const FlowDiagram: React.FC = () => {
             },
           };
         }
-        if (node.id === '5') {
+        if (node.id === '7') {
           return {
             ...node,
             data: {
@@ -483,7 +548,7 @@ const FlowDiagram: React.FC = () => {
   }, [targetProduction, purityMode, pressureMode, airFlow, moduleCount, power, coolingCapacity, setNodes]);
 
   return (
-    <div className="w-full h-[1300px] bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="w-full h-[1500px] bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <ReactFlow
         nodes={nodes}
         edges={edges}
