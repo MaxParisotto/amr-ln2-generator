@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Wind, Zap, Thermometer, Gauge, ArrowDown, Settings2 } from 'lucide-react';
+import { Wind, Zap, Thermometer, Gauge, ArrowDown, Settings2, Repeat, Container } from 'lucide-react';
 import CryocoolerDiagram from './CryocoolerDiagram';
 import AMRMagnetBlueprint from './AMRMagnetBlueprint';
+import HalbachAssemblyGuide from './HalbachAssemblyGuide';
+import HeatRecuperatorDiagram from './HeatRecuperatorDiagram';
+import DewarBlueprint from './DewarBlueprint';
 
 // MNH-1522A Performance Data (at 35°C)
 const MEMBRANE_DATA: Record<number, Record<number, { n2: number, air: number }>> = {
@@ -29,7 +32,7 @@ interface SectionData {
   id: string;
   title: string;
   icon: React.ElementType;
-  color: 'blue' | 'purple' | 'orange' | 'cyan';
+  color: 'blue' | 'purple' | 'orange' | 'cyan' | 'green';
   description: string;
   metrics: Array<{ label: string; value: string | number; unit?: string }>;
   specs: Array<{ param: string; value: string; note: string }>;
@@ -41,6 +44,7 @@ const SectionCard: React.FC<{ data: SectionData; isLast: boolean }> = ({ data, i
     purple: { accent: '#a78bfa', glow: 'rgba(167,139,250,0.3)' },
     orange: { accent: '#fb923c', glow: 'rgba(251,146,60,0.3)' },
     cyan: { accent: '#22d3ee', glow: 'rgba(34,211,238,0.3)' },
+    green: { accent: '#4ade80', glow: 'rgba(74,222,128,0.3)' },
   };
 
   const colors = colorClasses[data.color];
@@ -153,17 +157,23 @@ const FlowDiagram: React.FC = () => {
   const [targetProduction, setTargetProduction] = useState<number>(10);
   const purityMode = 3.0; // Fixed at 97% N2 (3.0% O2)
   const [pressureMode, setPressureMode] = useState<number>(9);
+  const [useRecuperator, setUseRecuperator] = useState<boolean>(true);
   const efficiency = 15;
+  const recuperatorEffectiveness = 0.35; // 35% energy savings
 
   // Calculated State
   const [airFlow, setAirFlow] = useState<number>(0);
   const [moduleCount, setModuleCount] = useState<number>(1);
   const [power, setPower] = useState<number>(0);
+  const [compressorPower, setCompressorPower] = useState<number>(0);
+  const [cryoPower, setCryoPower] = useState<number>(0);
   const [coolingCapacity, setCoolingCapacity] = useState<number>(0);
+  const [powerSavings, setPowerSavings] = useState<number>(0);
+  const [precooleTemp, setPrecooleTemp] = useState<number>(300);
 
   const calculateSpecs = useCallback(() => {
-    const LN2_DENSITY = 0.808;
-    const L_LIQUID_TO_L_GAS = 696;
+    const LN2_DENSITY = 0.808; // kg/L at 77K
+    const L_LIQUID_TO_L_GAS = 696; // 1L liquid → 696L gas at STP
     
     const totalGasLPerDay = targetProduction * L_LIQUID_TO_L_GAS;
     const requiredN2LPM = totalGasLPerDay / (24 * 60);
@@ -178,22 +188,45 @@ const FlowDiagram: React.FC = () => {
     const modulesNeeded = Math.ceil(requiredN2LPM / singleModuleStats.n2);
     const totalAirLPM = modulesNeeded * singleModuleStats.air;
 
-    const compressorPowerKW = (totalAirLPM / 28.3) * 0.35;
-    const theoreticalEnergyPerLiter = 0.5;
+    // Compressor power: ~0.35 kW per CFM at 9 bar, plus 15% motor losses
+    const compressorPowerKW = (totalAirLPM / 28.3) * 0.35 * 1.15;
+    
+    // Cryocooler power calculation:
+    // Theoretical minimum work (ideal Carnot): ~0.28 kWh/L LN2
+    // At 15% Carnot efficiency: 0.28 / 0.15 = 1.87 kWh/L
+    const theoreticalEnergyPerLiter = 0.28; // kWh/L (Carnot ideal)
     const realEnergyPerLiter = theoreticalEnergyPerLiter / (efficiency / 100);
-    const cryoPowerKW = (realEnergyPerLiter * targetProduction) / 24;
+    
+    // With recuperator, we pre-cool from 300K to ~180K using cold boil-off
+    // This reduces the cryocooler load by ~35%
+    const recuperatorFactor = useRecuperator ? (1 - recuperatorEffectiveness) : 1;
+    const cryoPowerKW = (realEnergyPerLiter * targetProduction * recuperatorFactor) / 24;
+    
     const totalSystemPower = compressorPowerKW + cryoPowerKW;
+    const savingsKW = useRecuperator ? (realEnergyPerLiter * targetProduction * recuperatorEffectiveness) / 24 : 0;
 
+    // Pre-cooled temperature after recuperator
+    const inletTemp = 300; // K
+    const exhaustTemp = 77; // K
+    const precooledTemp = useRecuperator ? 
+      inletTemp - (recuperatorEffectiveness * (inletTemp - exhaustTemp)) : inletTemp;
+
+    // Cooling load (thermal power to be removed) - adjusted for recuperator
     const massFlowKgPerSec = (targetProduction * LN2_DENSITY) / (24 * 3600);
-    const LATENT_HEAT = 199;
-    const SPECIFIC_HEAT_GAS = 1.04;
-    const coolingLoadKW = massFlowKgPerSec * (LATENT_HEAT + (SPECIFIC_HEAT_GAS * (300 - 77)));
+    const LATENT_HEAT = 199; // kJ/kg
+    const SPECIFIC_HEAT_GAS = 1.04; // kJ/kg·K (average for N2)
+    const effectiveStartTemp = useRecuperator ? precooledTemp : 300;
+    const coolingLoadKW = massFlowKgPerSec * (LATENT_HEAT + (SPECIFIC_HEAT_GAS * (effectiveStartTemp - 77)));
 
     setPower(Number(totalSystemPower.toFixed(2)));
+    setCompressorPower(Number(compressorPowerKW.toFixed(2)));
+    setCryoPower(Number(cryoPowerKW.toFixed(2)));
     setAirFlow(Number(totalAirLPM.toFixed(1)));
     setCoolingCapacity(Number((coolingLoadKW * 1000).toFixed(1)));
     setModuleCount(modulesNeeded);
-  }, [targetProduction, purityMode, pressureMode, efficiency]);
+    setPowerSavings(Number(savingsKW.toFixed(2)));
+    setPrecooleTemp(Math.round(precooledTemp));
+  }, [targetProduction, purityMode, pressureMode, efficiency, useRecuperator, recuperatorEffectiveness]);
 
   useEffect(() => {
     calculateSpecs();
@@ -208,7 +241,7 @@ const FlowDiagram: React.FC = () => {
       color: 'blue',
       metrics: [
         { label: 'Feed Air Flow', value: airFlow, unit: 'LPM' },
-        { label: 'Compressor Power', value: power > 0 ? (power * 0.6).toFixed(1) : 0, unit: 'kW' },
+        { label: 'Compressor Power', value: compressorPower, unit: 'kW' },
         { label: 'Operating Pressure', value: pressureMode, unit: 'bar' },
       ],
       specs: [
@@ -237,12 +270,33 @@ const FlowDiagram: React.FC = () => {
       ],
     },
     {
+      id: 'recuperator',
+      title: 'Heat Recuperator',
+      description: 'Pre-cools incoming N₂ using cold boil-off gas from the Dewar, reducing cryocooler load.',
+      icon: Repeat,
+      color: 'green',
+      metrics: [
+        { label: 'Inlet Temp', value: '300', unit: 'K' },
+        { label: 'Outlet Temp', value: useRecuperator ? precooleTemp : 300, unit: 'K' },
+        { label: 'Power Saved', value: powerSavings, unit: 'kW' },
+      ],
+      specs: [
+        { param: 'Type', value: 'Counter-Flow Finned Tube', note: 'High effectiveness design' },
+        { param: 'Effectiveness', value: useRecuperator ? '80-85%' : 'BYPASSED', note: useRecuperator ? '35% energy savings' : 'Recuperator disabled' },
+        { param: 'Cold Source', value: 'LN₂ Boil-off (77K)', note: 'Free cooling from evaporation' },
+        { param: 'Material', value: 'SS 304L + Copper Fins', note: 'Vacuum jacketed' },
+      ],
+    },
+    {
       id: 'stage1',
-      title: 'Cryocooler Stage 1 (300K → 200K)',
-      description: 'Pre-cooling stage using magnetic refrigeration.',
+      title: `Cryocooler Stage 1 (${useRecuperator ? precooleTemp : 300}K → 200K)`,
+      description: 'Pre-cooling stage using magnetic refrigeration with Gadolinium-based alloys.',
       icon: Zap,
       color: 'orange',
-      metrics: [],
+      metrics: [
+        { label: 'Inlet Temp', value: useRecuperator ? precooleTemp : 300, unit: 'K' },
+        { label: 'Outlet Temp', value: 200, unit: 'K' },
+      ],
       specs: [
         { param: 'Magnetic Field', value: '1.5 - 2.0 Tesla', note: 'Halbach Array Permanent Magnets' },
         { param: 'Operating Frequency', value: '1 - 4 Hz', note: 'Rotary or Reciprocating' },
@@ -252,10 +306,13 @@ const FlowDiagram: React.FC = () => {
     {
       id: 'stage2',
       title: 'Cryocooler Stage 2 (200K → 120K)',
-      description: 'Intermediate cooling stage.',
+      description: 'Intermediate cooling stage using LaFeSi-based magnetocaloric materials.',
       icon: Zap,
       color: 'orange',
-      metrics: [],
+      metrics: [
+        { label: 'Inlet Temp', value: 200, unit: 'K' },
+        { label: 'Outlet Temp', value: 120, unit: 'K' },
+      ],
       specs: [
         { param: 'Magnetic Field', value: '1.5 - 2.0 Tesla', note: 'Halbach Array Permanent Magnets' },
         { param: 'MCM Material', value: 'LaFeSi-based', note: 'Curie temperature ~200K' },
@@ -263,13 +320,13 @@ const FlowDiagram: React.FC = () => {
     },
     {
       id: 'stage3',
-      title: 'Cryocooler Stage 3 (120K → 80K)',
-      description: 'Final cooling stage reaching liquefaction temperatures.',
+      title: 'Cryocooler Stage 3 (120K → 77K)',
+      description: 'Final cooling stage reaching liquefaction temperature using MnFeP materials.',
       icon: Zap,
       color: 'orange',
       metrics: [
-        { label: 'Cooling Power', value: coolingCapacity, unit: 'W' },
-        { label: 'Cryo Power', value: power > 0 ? (power * 0.4).toFixed(1) : 0, unit: 'kW' },
+        { label: 'Cooling Load', value: coolingCapacity, unit: 'W' },
+        { label: 'Cryo Power', value: cryoPower, unit: 'kW' },
         { label: 'Efficiency', value: efficiency, unit: '% Carnot' },
       ],
       specs: [
@@ -280,7 +337,7 @@ const FlowDiagram: React.FC = () => {
     {
       id: 'liquefaction',
       title: 'Liquefaction Output',
-      description: 'Collection and storage of Liquid Nitrogen.',
+      description: 'Continuous liquefaction directly into pressurized storage.',
       icon: Thermometer,
       color: 'cyan',
       metrics: [
@@ -289,9 +346,26 @@ const FlowDiagram: React.FC = () => {
         { label: 'Operating Temp', value: '77', unit: 'K' },
       ],
       specs: [
-        { param: 'O₂ Monitoring', value: 'Required', note: 'Room oxygen depletion alarm' },
-        { param: 'Relief Valves', value: 'Set @ 1.1x MAWP', note: 'Thermal expansion protection' },
-        { param: 'Dewar Insulation', value: 'Vacuum Super-Insulation', note: 'Static evaporation < 1%/day' },
+        { param: 'Connection', value: 'Vacuum-Jacketed Line', note: 'Direct to Dewar' },
+        { param: 'Flow Control', value: 'JT Valve', note: 'Joule-Thomson expansion' },
+      ],
+    },
+    {
+      id: 'dewar',
+      title: '50L Pressurized Dewar Storage',
+      description: 'Vacuum-insulated cryogenic vessel with self-pressurization for liquid dispensing.',
+      icon: Container,
+      color: 'cyan',
+      metrics: [
+        { label: 'Capacity', value: 50, unit: 'L' },
+        { label: 'Pressure', value: '2-4', unit: 'bar' },
+        { label: 'Hold Time', value: '>30', unit: 'days' },
+      ],
+      specs: [
+        { param: 'Insulation', value: 'Vacuum + 25-layer MLI', note: 'Static loss <1.5%/day' },
+        { param: 'Material', value: 'SS 304L', note: '2mm outer, 1.5mm inner' },
+        { param: 'Relief Valve', value: '4.5 bar', note: 'With burst disc at 6 bar' },
+        { param: 'Self-Pressurizing', value: 'Yes', note: 'Ambient heat vaporizer coil' },
       ],
     },
   ];
@@ -339,6 +413,20 @@ const FlowDiagram: React.FC = () => {
               ))}
             </div>
           </div>
+          
+          <div>
+            <label className="block text-sm font-semibold text-slate-400 mb-3 text-center font-mono">HEAT RECUPERATOR</label>
+            <button
+              onClick={() => setUseRecuperator(!useRecuperator)}
+              className={`w-full py-2 px-3 text-sm font-bold rounded border-2 transition-all font-mono ${
+                useRecuperator 
+                  ? 'bg-[#4ade80] text-[#0f172a] border-[#4ade80] shadow-[0_0_15px_rgba(74,222,128,0.4)]' 
+                  : 'bg-[#0f172a] text-slate-400 border-[#2a3f5f] hover:border-[#4ade80] hover:text-[#4ade80]'
+              }`}
+            >
+              {useRecuperator ? '✓ ENABLED (-35% Power)' : 'DISABLED'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -350,12 +438,33 @@ const FlowDiagram: React.FC = () => {
               data={section} 
               isLast={idx === sections.length - 1} 
             />
-            {/* Insert Cryocooler Diagram after Membrane Separation */}
-            {section.id === 'membrane' && (
+            
+            {/* Insert Heat Recuperator Diagram after Recuperator section */}
+            {section.id === 'recuperator' && useRecuperator && (
               <div className="flex flex-col items-center w-full">
                 <div className="h-16 w-px bg-[#2a3f5f] my-4 relative">
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1a2744] p-1.5 rounded border border-[#2a3f5f]">
-                    <ArrowDown className="w-3 h-3 text-[#60a5fa]" />
+                    <ArrowDown className="w-3 h-3 text-[#4ade80]" />
+                  </div>
+                </div>
+                <div className="w-full bg-[#1a2744] rounded border-2 border-[#4ade80] overflow-hidden mb-4">
+                  <div className="px-6 py-4 border-b border-[#4ade80] text-center bg-[#0f172a]/50">
+                    <h3 className="text-lg font-bold text-[#4ade80] font-mono tracking-wide">HEAT RECUPERATOR SCHEMATIC</h3>
+                    <p className="text-slate-400 mt-1 text-sm">Counter-Flow Heat Exchange Using Cold Boil-Off</p>
+                  </div>
+                  <div className="p-4">
+                    <HeatRecuperatorDiagram />
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Insert Cryocooler Diagram after Stage 1 */}
+            {section.id === 'stage1' && (
+              <div className="flex flex-col items-center w-full">
+                <div className="h-16 w-px bg-[#2a3f5f] my-4 relative">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1a2744] p-1.5 rounded border border-[#2a3f5f]">
+                    <ArrowDown className="w-3 h-3 text-[#fb923c]" />
                   </div>
                 </div>
                 <div className="w-full bg-[#1a2744] rounded border-2 border-[#fb923c] overflow-hidden mb-4">
@@ -367,24 +476,48 @@ const FlowDiagram: React.FC = () => {
                 </div>
               </div>
             )}
-            {/* Insert AMR Magnet Blueprint after Stage 1 */}
-            {section.id === 'stage1' && (
-              <div className="flex flex-col items-center w-full">
-                <div className="h-16 w-px bg-[#2a3f5f] my-4 relative">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1a2744] p-1.5 rounded border border-[#2a3f5f]">
-                    <ArrowDown className="w-3 h-3 text-[#60a5fa]" />
+            
+            {/* Insert Dewar Blueprint after Dewar section */}
+            {section.id === 'dewar' && (
+              <>
+                <div className="flex flex-col items-center w-full mt-8">
+                  <div className="w-full bg-[#1a2744] rounded border-2 border-[#22d3ee] overflow-hidden">
+                    <div className="px-6 py-4 border-b border-[#22d3ee] text-center bg-[#0f172a]/50">
+                      <h3 className="text-lg font-bold text-[#22d3ee] font-mono tracking-wide">50L PRESSURIZED DEWAR BLUEPRINT</h3>
+                      <p className="text-slate-400 mt-1 text-sm">Vacuum-Insulated Storage with Self-Pressurization</p>
+                    </div>
+                    <div className="p-4">
+                      <DewarBlueprint />
+                    </div>
                   </div>
                 </div>
-                <div className="w-full bg-[#1a2744] rounded border-2 border-[#fb923c] overflow-hidden mb-4">
-                  <div className="px-6 py-4 border-b border-[#fb923c] text-center bg-[#0f172a]/50">
-                    <h3 className="text-lg font-bold text-[#fb923c] font-mono tracking-wide">AMR MAGNET ASSEMBLY BLUEPRINT</h3>
-                    <p className="text-slate-400 mt-1 text-sm">Halbach Array Construction Details</p>
-                  </div>
-                  <div className="p-4">
-                    <AMRMagnetBlueprint />
+                
+                {/* AMR Magnet Blueprint */}
+                <div className="flex flex-col items-center w-full mt-8">
+                  <div className="w-full bg-[#1a2744] rounded border-2 border-[#60a5fa] overflow-hidden">
+                    <div className="px-6 py-4 border-b border-[#60a5fa] text-center bg-[#0f172a]/50">
+                      <h3 className="text-lg font-bold text-[#60a5fa] font-mono tracking-wide">AMR MAGNET ASSEMBLY BLUEPRINT</h3>
+                      <p className="text-slate-400 mt-1 text-sm">Halbach Array Construction Details</p>
+                    </div>
+                    <div className="p-4">
+                      <AMRMagnetBlueprint />
+                    </div>
                   </div>
                 </div>
-              </div>
+                
+                {/* Halbach Assembly Guide */}
+                <div className="flex flex-col items-center w-full mt-8">
+                  <div className="w-full bg-[#1a2744] rounded border-2 border-[#22d3ee] overflow-hidden">
+                    <div className="px-6 py-4 border-b border-[#22d3ee] text-center bg-[#0f172a]/50">
+                      <h3 className="text-lg font-bold text-[#22d3ee] font-mono tracking-wide">HALBACH ARRAY ASSEMBLY GUIDE</h3>
+                      <p className="text-slate-400 mt-1 text-sm">Step-by-Step Fabrication & Assembly Instructions</p>
+                    </div>
+                    <div className="p-4">
+                      <HalbachAssemblyGuide />
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
           </React.Fragment>
         ))}
