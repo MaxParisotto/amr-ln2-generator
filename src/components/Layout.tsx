@@ -40,8 +40,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 max-w-[1920px] mx-auto p-4 lg:p-10">
-        {children}
+      <main className="relative z-10 w-full flex justify-center px-4 py-10">
+        <div className="w-full max-w-3xl">
+          {children}
+        </div>
       </main>
     </div>
   );

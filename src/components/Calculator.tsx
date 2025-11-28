@@ -49,7 +49,7 @@ const MEMBRANE_DATA: Record<number, Record<number, { n2: number, air: number }>>
 const Calculator: React.FC = () => {
   // Inputs
   const [targetProduction, setTargetProduction] = useState<number>(10); // Liters/day (Liquid)
-  const [purityMode, setPurityMode] = useState<number>(0.5); // % Oxygen (0.5 = 99.5% N2)
+  const [purityMode, setPurityMode] = useState<number>(3.0); // % Oxygen (3.0 = 97% N2)
   const [pressureMode, setPressureMode] = useState<number>(9); // barg
   const [efficiency] = useState<number>(15); // % of Carnot
 
