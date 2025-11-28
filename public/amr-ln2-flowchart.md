@@ -1,111 +1,145 @@
-flowchart LR
+flowchart TD
+
+%% ========================= THEME & STYLES =========================
+%% Professional Color Palette
+%% Blue (Cold/Air): #e3f2fd (bg), #1565c0 (stroke)
+%% Orange (Magnet/Heat): #fff3e0 (bg), #ef6c00 (stroke)
+%% Gray (Mechanical/Structure): #f5f5f5 (bg), #616161 (stroke)
+%% Green (Control/Safe): #e8f5e9 (bg), #2e7d32 (stroke)
+%% Purple (Special/Membrane): #f3e5f5 (bg), #7b1fa2 (stroke)
+
+classDef default fill:#ffffff,stroke:#37474f,stroke-width:1.5px,rx:5,ry:5,color:#263238;
+classDef group fill:#fafafa,stroke:#cfd8dc,stroke-width:2px,stroke-dasharray: 5 5,color:#546e7a;
+
+classDef air fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,rx:5,ry:5;
+classDef magnet fill:#fff8e1,stroke:#ff8f00,stroke-width:2px,rx:5,ry:5;
+classDef cold fill:#e0f7fa,stroke:#006064,stroke-width:2px,rx:5,ry:5;
+classDef mech fill:#eeeeee,stroke:#757575,stroke-width:2px,rx:5,ry:5;
+classDef control fill:#f3e5f5,stroke:#8e24aa,stroke-width:1.5px,stroke-dasharray: 3 3;
+classDef valve fill:#fff,stroke:#37474f,stroke-width:1.5px,shape:circle;
 
 %% ========================= FRONT-END AIR HANDLING =========================
 subgraph FE[Front-End Air Handling]
-    A1[Intake Filter\n+ Dust Filter]
-    A2[Oil-Free Compressor\n8–10 bar]
-    A3[Aftercooler\n+ Water Separator]
-    A4[Desiccant Dryer]
-    A5[CO₂ + Trace Removal Bed]
-    A6[High-Pressure Buffer Vessel\n8–10 bar]
+direction TB
+style FE fill:#fcfcfc,stroke:#eceff1,stroke-width:2px,rx:10,ry:10
 
-    A1 --> A2 --> A3 --> A4 --> A5 --> A6
+    A1([Intake Filter<br/>+ Dust Filter]):::air
+    A2[Oil-Free Compressor<br/>8–10 bar]:::mech
+    A3[Aftercooler<br/>+ Water Separator]:::mech
+    A4[Desiccant Dryer]:::air
+    A5[CO₂ + Trace Removal]:::air
+    A6[(High-Pressure Buffer<br/>8–10 bar)]:::air
+
+    A1 ==> A2 ==> A3 ==> A4 ==> A5 ==> A6
+
 end
 
-%% ========================= MEMBRANE SEPARATION (7 bar) =========================
-subgraph MS["Membrane Separation (N₂ Enrichment)"]
-    PR1[PR-101\nPressure Regulator\nSet: 7 bar]
-    V1{{V-101\nFeed Isolation Valve}}
-    M1[Hollow-Fiber N₂ Membrane\nFeed: ~7 bar]
-    N2P["N₂-Rich Stream (90–99% N₂)"]
-    O2R[O₂-Rich Retentate\nVent/Re-use]
+%% ========================= MEMBRANE SEPARATION =========================
+subgraph MS[Membrane Separation]
+direction TB
+style MS fill:#fcfcfc,stroke:#eceff1,stroke-width:2px,rx:10,ry:10
 
-    A6 --> PR1 --> V1 --> M1
-    M1 -->|N₂ Rich| N2P
-    M1 -->|O₂ Rich| O2R
+    PR1[PR-101<br/>Pressure Regulator]:::mech
+    V1{{V-101<br/>Feed Isolation}}:::valve
+    M1[[MNH-1522A Membrane]]:::air
+
+    A6 ==> PR1 ==> V1 ==> M1
+
+    M1 == N₂ Rich ==> N2P([N₂-Rich Stream<br/>90–99% N₂]):::air
+    M1 -- O₂ Rich --> O2R([O₂-Rich Retentate<br/>Vent]):::mech
+
 end
 
-%% ========================= PRECOOLING EXCHANGERS =========================
-subgraph PC[Pre-Cooling HX Chain]
-    HX1[HX-101\nWarm N₂ ↔ Cold Vapor]
-    HX2["HX-102 Interstage Pre-Cooler - Magno Stage A Return"]
-    HX3["HX-103 Deep Pre-Cooler - Magno Stage C Return"]
-    N2C[N₂ @ ~80–100 K]
+%% ========================= PRECOOLING =========================
+subgraph PC[Pre-Cooling System]
+direction TB
+style PC fill:#fcfcfc,stroke:#eceff1,stroke-width:2px,rx:10,ry:10
 
-    N2P --> HX1 --> HX2 --> HX3 --> N2C
+    HX1[HX-101<br/>Warm N₂ ↔ Cold Vapor]:::cold
+    HX2[HX-102<br/>Interstage Pre-Cooler]:::cold
+    HX3[HX-103<br/>Deep Pre-Cooler]:::cold
+    N2C([N₂ @ ~80–100 K]):::cold
+
+    N2P ==> HX1 ==> HX2 ==> HX3 ==> N2C
+
 end
 
 %% ========================= MAGNETOCALORIC COLD BOX =========================
-subgraph MC["Magnetocaloric Cryocooler (Rotary AMR)"]
-    direction TB
+subgraph MC[Magnetocaloric Cryocooler]
+direction TB
+style MC fill:#fffde7,stroke:#fff59d,stroke-width:2px,rx:10,ry:10
 
-    MCmag[Halbach Rotor\n2–3 Tesla Gap Field]:::magnet
-    MCshaft[Shaft + Bearings]:::mech
+    subgraph MCR[AMR Core Assembly]
+        direction LR
+        style MCR fill:#fff,stroke:none
 
-    MC1[Stage A AMR\nCurie 250–280 K\nΔT: 300→200 K]:::cold
-    MC2[Stage B AMR\nCurie 180–200 K\nΔT: 200→120 K]:::cold
-    MC3[Stage C AMR\nCurie 100–120 K\nΔT: 120→80 K]:::cold
+        MCmag((Halbach Rotor<br/>2–3 Tesla)):::magnet
+        MCshaft[Drive Shaft]:::mech
 
-    MCmag --- MC1
-    MCmag --- MC2
-    MCmag --- MC3
-    MC1 --- MCshaft
-    MC2 --- MCshaft
-    MC3 --- MCshaft
+        MC1[Stage A<br/>300→200 K]:::cold
+        MC2[Stage B<br/>200→120 K]:::cold
+        MC3[Stage C<br/>120→80 K]:::cold
 
-    %% Closed-loop working fluid (N₂ or He/N₂ mix)
-    subgraph MCL[Closed Working-Fluid Loop]
-        W1[Pump/Blower P-301]
-        W2[AMR Bed Stage A]
-        W3[AMR Bed Stage B]
-        W4[AMR Bed Stage C]
+        MCmag -.- MC1 & MC2 & MC3
+        MCshaft === MC1 & MC2 & MC3
+    end
+
+    subgraph MCL[Working Fluid Loop]
+        direction LR
+        style MCL fill:#fff,stroke:none
+
+        W1[Pump P-301]:::mech
+        W2[Bed A]:::cold
+        W3[Bed B]:::cold
+        W4[Bed C]:::cold
 
         W1 --> W2 --> W3 --> W4 --> W1
     end
+
+    %% Thermal Links
+    HX2 -.-> MC1
+    HX3 -.-> MC3
+
 end
 
-%% ========================= EXPANSION & LIQUEFACTION =========================
-subgraph LX[JT Expansion & Liquefaction]
-    JT1[JT-101\nJoule-Thomson Valve\n7 → 1–2 bar]
-    N2mix[N₂ Liquid + Vapor]
-    SEP1[Phase Separator V-401]
-    LN2[Liquid N₂ Storage Dewar\nV-402]
-    RV1[Cold Vapor Return]
+%% ========================= LIQUEFACTION =========================
+subgraph LX[Liquefaction Stage]
+direction TB
+style LX fill:#e1f5fe,stroke:#b3e5fc,stroke-width:2px,rx:10,ry:10
 
-    N2C --> JT1 --> N2mix --> SEP1
-    SEP1 -->|Liquid| LN2
-    SEP1 -->|Cold Vapor| RV1 --> HX1
+    JT1{{JT-101<br/>Joule-Thomson}}:::valve
+    SEP1[Phase Separator<br/>V-401]:::cold
+    LN2[(Liquid N₂ Storage<br/>V-402)]:::cold
+    RV1([Cold Vapor Return]):::cold
+
+    N2C ==> JT1 ==> SEP1
+    SEP1 == Liquid ==> LN2
+    SEP1 -- Vapor --> RV1
+    RV1 --> HX1
+
 end
 
-%% ========================= STORAGE & SAFETY =========================
-subgraph ST[Storage & Safety]
-    D1[Dewar Pressure Relief\n+ O₂-Safe Vent Stack]
-    LT[LN₂ Level Sensor LT-402]
-    PT[LN₂ Pressure PT-402]
+%% ========================= SAFETY & CONTROL =========================
+subgraph ST[Safety & Control]
+direction LR
+style ST fill:#f3e5f5,stroke:#e1bee7,stroke-width:2px,rx:10,ry:10
 
-    LN2 --> D1
-    LN2 --- LT
-    LN2 --- PT
+    C1[PLC Controller]:::control
+    SENSORS[Sensors]:::control
+    SAFETY[Safety Valves]:::control
+
+    C1 -.-> SENSORS
+    C1 -.-> MCmag
+    LN2 -.-> SAFETY
+
 end
 
-%% ========================= CONTROLS & MONITORING =========================
-subgraph CTRL[Control System]
-    C1[PLC / Controller]
-    C2[Temperature Sensors TT-*]
-    C3[Pressure Sensors PT-*]
-    C4[Flow Sensors FT-*]
-    C5[Magnet Motor Control\n+ Pump Control\n+ JT PID]
+%% ========================= MAIN FLOW CONNECTIONS =========================
+FE ==> MS
+MS ==> PC
+PC ==> MC
+MC ==> LX
+LX -.-> ST
 
-    C1 --- C2
-    C1 --- C3
-    C1 --- C4
-    C1 --- C5
-    C5 --- MCmag
-    C5 --- W1
-    C5 --- JT1
-end
-
-%% ========================= CLASS DEFINITIONS =========================
-classDef magnet fill:#ffd9b3,stroke:#b36b00,stroke-width:1px
-classDef cold fill:#ccf2ff,stroke:#007399,stroke-width:1px
-classDef mech fill:#e6e6e6,stroke:#808080,stroke-width:1px
+%% ========================= LINK STYLING =========================
+linkStyle default stroke:#546e7a,stroke-width:1.5px,fill:none;
