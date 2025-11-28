@@ -2,13 +2,10 @@ import React from 'react';
 
 const AMRMagnetBlueprint: React.FC = () => {
   return (
-    <div className="my-8">
-      <h4 className="text-center text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">
-        AMR Magnet Assembly Blueprint
-      </h4>
+    <div className="w-full">
       <svg
         viewBox="0 0 800 600"
-        className="w-full h-auto bg-[#1a2744] rounded-xl border border-slate-700 shadow-xl"
+        className="w-full h-auto rounded"
         style={{ fontFamily: 'monospace' }}
       >
         <defs>

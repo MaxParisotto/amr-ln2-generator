@@ -37,10 +37,10 @@ interface SectionData {
 
 const SectionCard: React.FC<{ data: SectionData; isLast: boolean }> = ({ data, isLast }) => {
   const colorClasses = {
-    blue: { bg: 'bg-blue-50', border: 'border-blue-200', icon: 'text-blue-600', title: 'text-blue-900' },
-    purple: { bg: 'bg-purple-50', border: 'border-purple-200', icon: 'text-purple-600', title: 'text-purple-900' },
-    orange: { bg: 'bg-orange-50', border: 'border-orange-200', icon: 'text-orange-600', title: 'text-orange-900' },
-    cyan: { bg: 'bg-cyan-50', border: 'border-cyan-200', icon: 'text-cyan-600', title: 'text-cyan-900' },
+    blue: { accent: '#60a5fa', glow: 'rgba(96,165,250,0.3)' },
+    purple: { accent: '#a78bfa', glow: 'rgba(167,139,250,0.3)' },
+    orange: { accent: '#fb923c', glow: 'rgba(251,146,60,0.3)' },
+    cyan: { accent: '#22d3ee', glow: 'rgba(34,211,238,0.3)' },
   };
 
   const colors = colorClasses[data.color];
@@ -48,29 +48,51 @@ const SectionCard: React.FC<{ data: SectionData; isLast: boolean }> = ({ data, i
   return (
     <div className="flex flex-col items-center w-full">
       {/* Icon Bubble */}
-      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg z-10 ${colors.bg} border-2 ${colors.border} mb-6 transform transition-transform hover:scale-110`}>
-        <data.icon className={`w-8 h-8 ${colors.icon}`} />
+      <div 
+        className="w-14 h-14 rounded border-2 flex items-center justify-center z-10 mb-6 transform transition-all hover:scale-110 bg-[#1a2744]"
+        style={{ 
+          borderColor: colors.accent,
+          boxShadow: `0 0 20px ${colors.glow}`
+        }}
+      >
+        <data.icon className="w-7 h-7" style={{ color: colors.accent }} />
       </div>
 
       {/* Main Card */}
-      <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden relative z-10">
+      <div 
+        className="w-full bg-[#1a2744] rounded border-2 overflow-hidden relative z-10"
+        style={{ borderColor: colors.accent }}
+      >
         {/* Header */}
-        <div className={`px-8 py-6 border-b ${colors.border} ${colors.bg} text-center`}>
-          <h3 className={`text-xl font-bold ${colors.title}`}>{data.title}</h3>
-          <p className="text-slate-600 mt-2 leading-relaxed">{data.description}</p>
+        <div 
+          className="px-6 py-4 border-b text-center"
+          style={{ 
+            borderColor: colors.accent,
+            background: `linear-gradient(180deg, rgba(15,23,42,0.8) 0%, #1a2744 100%)`
+          }}
+        >
+          <h3 className="text-lg font-bold font-mono tracking-wide" style={{ color: colors.accent }}>
+            {data.title.toUpperCase()}
+          </h3>
+          <p className="text-slate-400 mt-1.5 text-sm leading-relaxed">{data.description}</p>
         </div>
 
         {/* Body */}
-        <div className="p-8 space-y-8">
+        <div className="p-6 space-y-6">
           {/* Metrics */}
           {data.metrics.length > 0 && (
             <div className="text-center">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Performance Metrics</h4>
-              <div className="flex flex-wrap justify-center gap-4">
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 font-mono">
+                ─── PERFORMANCE METRICS ───
+              </h4>
+              <div className="flex flex-wrap justify-center gap-3">
                 {data.metrics.map((m, i) => (
-                  <div key={i} className="bg-slate-50 rounded-xl p-4 border border-slate-100 min-w-[140px] flex-1">
-                    <div className="text-xs text-slate-500 mb-1">{m.label}</div>
-                    <div className="text-lg font-bold text-slate-900">
+                  <div 
+                    key={i} 
+                    className="bg-[#0f172a] rounded border border-[#2a3f5f] p-3 min-w-[130px] flex-1"
+                  >
+                    <div className="text-xs text-slate-500 mb-1 font-mono uppercase tracking-wide">{m.label}</div>
+                    <div className="text-lg font-bold text-[#22d3ee] font-mono">
                       {m.value} <span className="text-xs font-medium text-slate-500">{m.unit}</span>
                     </div>
                   </div>
@@ -82,13 +104,29 @@ const SectionCard: React.FC<{ data: SectionData; isLast: boolean }> = ({ data, i
           {/* Specs */}
           {data.specs.length > 0 && (
             <div className="text-center">
-              {data.metrics.length > 0 && <div className="w-16 h-1 bg-slate-100 mx-auto mb-8 rounded-full" />}
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Technical Specs</h4>
-              <div className="space-y-4">
+              {data.metrics.length > 0 && (
+                <div className="flex items-center justify-center gap-4 my-6">
+                  <div className="h-px bg-[#2a3f5f] flex-1" />
+                  <div className="w-2 h-2 rotate-45 border border-[#2a3f5f]" />
+                  <div className="h-px bg-[#2a3f5f] flex-1" />
+                </div>
+              )}
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 font-mono">
+                ─── TECHNICAL SPECIFICATIONS ───
+              </h4>
+              <div className="space-y-3">
                 {data.specs.map((s, i) => (
-                  <div key={i} className="flex flex-col items-center p-2 hover:bg-slate-50 rounded-lg transition-colors">
-                    <span className="font-semibold text-slate-700">{s.param}</span>
-                    <span className="font-mono text-sm text-slate-900 bg-slate-100 px-3 py-1 rounded-md my-1.5 border border-slate-200">{s.value}</span>
+                  <div 
+                    key={i} 
+                    className="flex flex-col items-center p-2 hover:bg-[#0f172a] rounded transition-colors border border-transparent hover:border-[#2a3f5f]"
+                  >
+                    <span className="font-semibold text-slate-400 text-sm">{s.param}</span>
+                    <span 
+                      className="font-mono text-sm px-3 py-1 rounded my-1.5 border"
+                      style={{ color: colors.accent, borderColor: colors.accent, background: 'rgba(15,23,42,0.5)' }}
+                    >
+                      {s.value}
+                    </span>
                     <span className="text-xs text-slate-500 max-w-xs leading-relaxed">{s.note}</span>
                   </div>
                 ))}
@@ -100,9 +138,9 @@ const SectionCard: React.FC<{ data: SectionData; isLast: boolean }> = ({ data, i
 
       {/* Connector */}
       {!isLast && (
-        <div className="h-16 w-0.5 bg-slate-200 my-4 relative">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-1.5 rounded-full border border-slate-200 shadow-sm">
-            <ArrowDown className="w-3 h-3 text-slate-400" />
+        <div className="h-16 w-px bg-[#2a3f5f] my-4 relative">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1a2744] p-1.5 rounded border border-[#2a3f5f]">
+            <ArrowDown className="w-3 h-3 text-[#60a5fa]" />
           </div>
         </div>
       )}
@@ -261,17 +299,17 @@ const FlowDiagram: React.FC = () => {
   return (
     <div className="w-full">
       {/* Controls */}
-      <div className="bg-white/90 backdrop-blur-xl rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 p-6 sticky top-20 z-30 mb-12">
+      <div className="bg-[#1a2744]/90 backdrop-blur-xl rounded border-2 border-[#60a5fa] p-6 sticky top-20 z-30 mb-10">
         <div className="flex items-center gap-3 mb-6 justify-center">
-          <Settings2 className="w-5 h-5 text-slate-400" />
-          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest">System Parameters</h2>
+          <Settings2 className="w-5 h-5 text-[#60a5fa]" />
+          <h2 className="text-sm font-bold text-[#60a5fa] uppercase tracking-widest font-mono">SYSTEM PARAMETERS</h2>
         </div>
         
         <div className="flex flex-col gap-6">
           <div>
             <div className="flex justify-between items-center mb-3">
-              <label className="text-sm font-semibold text-slate-700">Production Target</label>
-              <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{targetProduction} L/day</span>
+              <label className="text-sm font-semibold text-slate-400 font-mono">PRODUCTION TARGET</label>
+              <span className="text-sm font-bold text-[#22d3ee] bg-[#0f172a] px-3 py-1 rounded border border-[#22d3ee] font-mono">{targetProduction} L/day</span>
             </div>
             <input 
               type="range" 
@@ -279,21 +317,21 @@ const FlowDiagram: React.FC = () => {
               max="50" 
               value={targetProduction}
               onChange={(e) => setTargetProduction(Number(e.target.value))}
-              className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600 hover:accent-blue-700 transition-colors"
+              className="w-full"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-3 text-center">Feed Pressure</label>
+            <label className="block text-sm font-semibold text-slate-400 mb-3 text-center font-mono">FEED PRESSURE</label>
             <div className="flex gap-2">
               {[5, 9, 11].map((val) => (
                 <button
                   key={val}
                   onClick={() => setPressureMode(val)}
-                  className={`flex-1 py-2 px-3 text-sm font-bold rounded-lg border transition-all ${
+                  className={`flex-1 py-2 px-3 text-sm font-bold rounded border-2 transition-all font-mono ${
                     pressureMode === val 
-                      ? 'bg-slate-800 text-white border-slate-800 shadow-md' 
-                      : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      ? 'bg-[#60a5fa] text-[#0f172a] border-[#60a5fa] shadow-[0_0_15px_rgba(96,165,250,0.4)]' 
+                      : 'bg-[#0f172a] text-slate-400 border-[#2a3f5f] hover:border-[#60a5fa] hover:text-[#60a5fa]'
                   }`}
                 >
                   {val} bar
@@ -315,15 +353,15 @@ const FlowDiagram: React.FC = () => {
             {/* Insert Cryocooler Diagram after Membrane Separation */}
             {section.id === 'membrane' && (
               <div className="flex flex-col items-center w-full">
-                <div className="h-16 w-0.5 bg-slate-200 my-4 relative">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-1.5 rounded-full border border-slate-200 shadow-sm">
-                    <ArrowDown className="w-3 h-3 text-slate-400" />
+                <div className="h-16 w-px bg-[#2a3f5f] my-4 relative">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1a2744] p-1.5 rounded border border-[#2a3f5f]">
+                    <ArrowDown className="w-3 h-3 text-[#60a5fa]" />
                   </div>
                 </div>
-                <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden mb-4">
-                  <div className="px-8 py-4 border-b border-orange-200 bg-orange-50 text-center">
-                    <h3 className="text-xl font-bold text-orange-900">AMR Cryocooler System Overview</h3>
-                    <p className="text-slate-600 mt-1 text-sm">3-Stage Cascade Magnetic Refrigeration</p>
+                <div className="w-full bg-[#1a2744] rounded border-2 border-[#fb923c] overflow-hidden mb-4">
+                  <div className="px-6 py-4 border-b border-[#fb923c] text-center bg-[#0f172a]/50">
+                    <h3 className="text-lg font-bold text-[#fb923c] font-mono tracking-wide">AMR CRYOCOOLER SYSTEM OVERVIEW</h3>
+                    <p className="text-slate-400 mt-1 text-sm">3-Stage Cascade Magnetic Refrigeration</p>
                   </div>
                   <CryocoolerDiagram />
                 </div>
@@ -332,15 +370,15 @@ const FlowDiagram: React.FC = () => {
             {/* Insert AMR Magnet Blueprint after Stage 1 */}
             {section.id === 'stage1' && (
               <div className="flex flex-col items-center w-full">
-                <div className="h-16 w-0.5 bg-slate-200 my-4 relative">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-1.5 rounded-full border border-slate-200 shadow-sm">
-                    <ArrowDown className="w-3 h-3 text-slate-400" />
+                <div className="h-16 w-px bg-[#2a3f5f] my-4 relative">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1a2744] p-1.5 rounded border border-[#2a3f5f]">
+                    <ArrowDown className="w-3 h-3 text-[#60a5fa]" />
                   </div>
                 </div>
-                <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden mb-4">
-                  <div className="px-8 py-4 border-b border-orange-200 bg-orange-50 text-center">
-                    <h3 className="text-xl font-bold text-orange-900">AMR Magnet Assembly Blueprint</h3>
-                    <p className="text-slate-600 mt-1 text-sm">Halbach Array Construction Details</p>
+                <div className="w-full bg-[#1a2744] rounded border-2 border-[#fb923c] overflow-hidden mb-4">
+                  <div className="px-6 py-4 border-b border-[#fb923c] text-center bg-[#0f172a]/50">
+                    <h3 className="text-lg font-bold text-[#fb923c] font-mono tracking-wide">AMR MAGNET ASSEMBLY BLUEPRINT</h3>
+                    <p className="text-slate-400 mt-1 text-sm">Halbach Array Construction Details</p>
                   </div>
                   <div className="p-4">
                     <AMRMagnetBlueprint />

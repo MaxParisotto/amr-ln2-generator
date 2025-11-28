@@ -7,9 +7,13 @@ const App: React.FC = () => {
   return (
     <Layout>
       <div className="w-full">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-slate-900 tracking-tight">AMR LN₂ Generator</h2>
-          <p className="text-slate-500 text-lg mt-2">Interactive system design and sizing tool</p>
+        {/* Title Block */}
+        <div className="border-2 border-[#60a5fa] rounded-lg p-6 mb-10 bg-[#1a2744]/50">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-[#60a5fa] tracking-wider font-mono">AMR LN₂ GENERATOR</h2>
+            <div className="w-32 h-0.5 bg-[#60a5fa] mx-auto my-3" />
+            <p className="text-slate-400 text-sm font-mono tracking-wide">INTERACTIVE SYSTEM DESIGN & SIZING TOOL</p>
+          </div>
         </div>
         <FlowDiagram />
       </div>

@@ -3,35 +3,28 @@ import { Github, Zap } from 'lucide-react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900">
-      {/* Background Pattern */}
-      <div className="fixed inset-0 z-0 opacity-[0.03] pointer-events-none" 
-        style={{ 
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` 
-        }} 
-      />
-
+    <div className="min-h-screen bg-[#0f172a] text-slate-300 font-sans selection:bg-blue-500/30 selection:text-blue-100 blueprint-grid">
       {/* Top Header */}
-      <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-xl border-b border-slate-200">
+      <header className="sticky top-0 z-40 w-full bg-[#1a2744]/95 backdrop-blur-xl border-b-2 border-[#60a5fa]">
         <div className="max-w-[1920px] mx-auto px-4 lg:px-10 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-              <Zap size={18} fill="currentColor" />
+            <div className="w-10 h-10 bg-[#1a2744] border-2 border-[#60a5fa] rounded flex items-center justify-center text-[#60a5fa] shadow-[0_0_15px_rgba(96,165,250,0.4)]">
+              <Zap size={20} fill="currentColor" />
             </div>
             <div>
-              <h1 className="font-bold text-lg text-slate-900 tracking-tight leading-none">AMR Gen</h1>
-              <p className="text-[10px] text-slate-500 font-medium tracking-wide uppercase leading-none mt-0.5">LN2 Systems</p>
+              <h1 className="font-bold text-lg text-[#60a5fa] tracking-wider leading-none font-mono">AMR GEN</h1>
+              <p className="text-[10px] text-slate-500 font-medium tracking-widest uppercase leading-none mt-0.5">LN2 SYSTEMS</p>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-100">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs text-slate-700 font-semibold">Active Design</span>
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[#0f172a] rounded border border-[#2a3f5f]">
+              <div className="w-2 h-2 rounded-full bg-[#22d3ee] animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
+              <span className="text-xs text-[#22d3ee] font-mono tracking-wide">ACTIVE</span>
             </div>
             <a 
               href="#" 
-              className="text-slate-400 hover:text-slate-600 transition-colors"
+              className="text-slate-500 hover:text-[#60a5fa] transition-colors"
             >
               <Github size={20} />
             </a>
@@ -41,10 +34,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* Main Content */}
       <main className="relative z-10 w-full flex justify-center px-4 py-10">
-        <div className="w-full max-w-3xl">
+        <div className="w-full max-w-4xl">
           {children}
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-[#2a3f5f] py-6 mt-auto">
+        <div className="max-w-4xl mx-auto px-4 flex justify-between items-center text-xs text-slate-600 font-mono">
+          <span>DOCUMENT: AMR-LN2-SYS-001</span>
+          <span>REV: A | SCALE: NTS</span>
+        </div>
+      </footer>
     </div>
   );
 };
