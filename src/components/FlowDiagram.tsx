@@ -44,6 +44,7 @@ interface StageNodeData {
   color: string;
   items?: string[];
   hasControls?: boolean;
+  showPurityControl?: boolean;
   metrics?: Array<{ label: string; value: string | number; unit?: string }>;
   specs?: Array<{ param: string; value: string; note: string }>;
   onProduction?: (value: number) => void;
@@ -97,27 +98,29 @@ const StageNode: React.FC<{ data: StageNodeData }> = ({ data }) => {
             />
           </div>
 
-          <div className="bg-white/80 rounded-lg p-3">
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-xs font-semibold text-slate-700">N₂ Purity</label>
-              <span className="text-xs font-bold text-emerald-600">{100 - (data.purity || 0.5)}%</span>
+          {data.showPurityControl && (
+            <div className="bg-white/80 rounded-lg p-3">
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-xs font-semibold text-slate-700">N₂ Purity</label>
+                <span className="text-xs font-bold text-emerald-600">{100 - (data.purity || 0.5)}%</span>
+              </div>
+              <div className="flex gap-1">
+                {[0.5, 1.0, 2.0, 3.0].map((val) => (
+                  <button
+                    key={val}
+                    onClick={() => data.onPurity?.(val)}
+                    className={`flex-1 py-1 text-[10px] font-bold rounded border transition-all ${
+                      data.purity === val 
+                        ? 'bg-emerald-600 text-white border-emerald-600' 
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-300'
+                    }`}
+                  >
+                    {100 - val}%
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex gap-1">
-              {[0.5, 1.0, 2.0, 3.0].map((val) => (
-                <button
-                  key={val}
-                  onClick={() => data.onPurity?.(val)}
-                  className={`flex-1 py-1 text-[10px] font-bold rounded border transition-all ${
-                    data.purity === val 
-                      ? 'bg-emerald-600 text-white border-emerald-600' 
-                      : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-300'
-                  }`}
-                >
-                  {100 - val}%
-                </button>
-              ))}
-            </div>
-          </div>
+          )}
 
           <div className="bg-white/80 rounded-lg p-3">
             <div className="flex justify-between items-center mb-2">
@@ -197,7 +200,7 @@ const nodeTypes = {
 
 const FlowDiagram: React.FC = () => {
   const [targetProduction, setTargetProduction] = useState<number>(10);
-  const [purityMode, setPurityMode] = useState<number>(0.5);
+  const [purityMode, setPurityMode] = useState<number>(3.0);
   const [pressureMode, setPressureMode] = useState<number>(9);
   const efficiency = 15;
 
@@ -255,11 +258,10 @@ const FlowDiagram: React.FC = () => {
         icon: Gauge,
         color: 'blue',
         hasControls: true,
+        showPurityControl: false,
         production: targetProduction,
-        purity: purityMode,
         pressure: pressureMode,
         onProduction: setTargetProduction,
-        onPurity: setPurityMode,
         onPressure: setPressureMode,
       },
     },
@@ -469,7 +471,6 @@ const FlowDiagram: React.FC = () => {
             data: {
               ...node.data,
               production: targetProduction,
-              purity: purityMode,
               pressure: pressureMode,
             },
           };
