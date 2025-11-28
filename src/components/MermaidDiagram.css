@@ -1,0 +1,73 @@
+.mermaid-diagram-container {
+  width: 100%;
+  height: 100%;
+  min-height: 600px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.mermaid-diagram-content {
+  width: 100%;
+  height: 100%;
+}
+
+.mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+  background: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .mermaid-diagram-container {
+    min-height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .mermaid-diagram-container {
+    min-height: 400px;
+    padding: 0.5rem;
+  }
+}
+
+/* Ensure SVG elements are properly scaled */
+.mermaid-diagram svg text {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, sans-serif !important;
+}
+
+.mermaid-diagram svg .node {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mermaid-diagram svg .node:hover {
+  filter: brightness(0.95);
+}
+
+/* Loading state */
+.mermaid-diagram-container.loading {
+  justify-content: center;
+  align-items: center;
+}
+
+.mermaid-diagram-container.loading::after {
+  content: '';
+  width: 40px;
+  height: 40px;
+  border: 3px solid #667eea;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
